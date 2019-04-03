@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
 import sys
-import brickpi3
 import time
-import atexit
+import brickpiplus
+import controller
 
-BP = brickpi3.BrickPi3()
-BP.reset_all()
-atexit.register(BP.reset_all)
+BP = brickpiplus.GetBrickHandle()
 BP.set_sensor_type(BP.PORT_1, BP.SENSOR_TYPE.NXT_ULTRASONIC)
 BP.set_sensor_type(BP.PORT_3, BP.SENSOR_TYPE.CUSTOM,
                    [(BP.SENSOR_CUSTOM.PIN1_ADC)])
@@ -30,40 +28,40 @@ def left():
 def touch():
     return BP.get_sensor(BP.PORT_4)
 
-def listen():
+def listen(logger):
     sound = BP.get_sensor(BP.PORT_3)[0]
-    sys.stderr.write('\rsound: %d   ' % (sound,))
+    logger('sound: %d' % (sound,))
     return sound
 
-def distance():
+def distance(logger):
     distance = BP.get_sensor(BP.PORT_1)
-    sys.stderr.write('\rdistance: %d   ' % (distance,))
+    logger('distance: %d' % (distance,))
     return distance
 
 def go():
-    while True:
-        print 'listening'
+    with controller.Controller() as ctrl:
+        logger = ctrl.logger()
         while True:
-            time.sleep(0.1)
-            if listen() < 1000:
-                sys.stderr.write('\n')
-                break
-        print 'driving'
-        motors(100)
-        while True:
-            time.sleep(0.1)
-            if distance() < 40:
-                motors(40)
-                sys.stderr.write('\n')
-                break
-        while True:
-            if touch():
-                print 'touched'
-                break
-            time.sleep(0.1)
-        motors(-40)
-        time.sleep(3)
-        motors(0)
+            logger('listening')
+            while True:
+                time.sleep(0.1)
+                if listen(logger) < 1000:
+                    break
+            logger('driving')
+            motors(100)
+            while True:
+                time.sleep(0.1)
+                if distance(logger) < 40:
+                    motors(40)
+                    break
+            while True:
+                if touch():
+                    logger('touched')
+                    break
+                time.sleep(0.1)
+            motors(-40)
+            time.sleep(3)
+            motors(0)
 
 if __name__ == '__main__':
     go()

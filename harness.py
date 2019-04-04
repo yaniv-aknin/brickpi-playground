@@ -40,12 +40,21 @@ def robot():
 
 @command
 def twowheel():
+    def slow_on_distance(sensor, reactor):
+        def callable():
+            distance = sensor()
+            reactor.variables['distance'] = distance
+            if distance < 40:
+                reactor.twowheel.speed = min(reactor.twowheel.speed, 20)
+        return callable
     r = reactor.Reactor()
     r.controllers['curses'] = cursesctrlr.CursesController(r)
     brick = r.controllers['brick'] = brickpictrlr.BrickController(r)
     r.controllers['twowheel'] = twowheelctrlr.TwoWheelController(r, right_port=brick.PORT_D, left_port=brick.PORT_B)
     with r:
         r.curses.set_key('q', lambda: r.stop())
+        distance_sensor = brickpictrlr.DistanceSensor(r.brick, brick.PORT_1)
+        r.schedule_recurring(0.1, slow_on_distance(distance_sensor, r))
         r.loop()
 
 if __name__ == '__main__':

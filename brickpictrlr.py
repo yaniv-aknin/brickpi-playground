@@ -15,19 +15,19 @@ class BrickController(object):
     PORT_B = brickpi3.BrickPi3.PORT_B
     PORT_C = brickpi3.BrickPi3.PORT_C
     PORT_D = brickpi3.BrickPi3.PORT_D
+    SENSOR_TYPE = brickpi3.BrickPi3.SENSOR_TYPE
+    SENSOR_CUSTOM = brickpi3.BrickPi3.SENSOR_CUSTOM
     def __init__(self, reactor):
         self.reactor = reactor
         self.sensors = Bag()
         self.motors = Bag()
     def __enter__(self):
-        self.brick = brickpi3.BrickPi3()
-        self.brick.reset_all()
-        atexit.register(self.brick.reset_all)
+        self.device = brickpi3.BrickPi3()
+        self.device.reset_all()
+        atexit.register(self.device.reset_all)
         return self
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.brick.reset_all()
-    def __getattr__(self, name):
-        return self.sensors[name]
+        self.device.reset_all()
     def new_motor(self, port, name):
         motor = Motor(self, port, name)
         self.motors[motor.name] = motor
@@ -35,11 +35,13 @@ class BrickController(object):
             self.motors['all'] = MotorSet(motor.brick, motor.port, 'all')
         else:
             self.motors.all.add_port(motor.port)
+    def __call__(self):
+        pass
 
 class MotorBase(object):
-    def __init__(self, brick, ports, name):
+    def __init__(self, brick, port, name):
         self.brick = brick
-        self.ports = ports
+        self.port = port
         self.name = name
     def float(self):
         self.set_power(self.brick.MOTOR_FLOAT)
@@ -47,14 +49,14 @@ class MotorBase(object):
         self.set_power(0)
     def set_power(self, power):
         if 'BRICKPI_DRYRUN' not in os.environ:
-            self.brick.set_motor_power(self.ports, power)
+            self.brick.device.set_motor_power(self.port, power)
 
 class Motor(MotorBase):
     pass
 
-def MotorSet(MotorBase):
+class MotorSet(MotorBase):
     def add_port(self, port):
-        self.ports += port
+        self.port += port
 
 class BaseSensor(object):
     def __init__(self, brick, port):
@@ -65,8 +67,8 @@ class BaseSensor(object):
         return self.brick.get_sensor(self.port)
 
 class TouchSensor(BaseSensor):
-    SENSOR_TYPE = (brick.SENSOR_TYPE.TOUCH,)
+    SENSOR_TYPE = (BrickController.SENSOR_TYPE.TOUCH,)
 class DistanceSensor(BaseSensor):
-    SENSOR_TYPE = (BP.SENSOR_TYPE.NXT_ULTRASONIC,)
+    SENSOR_TYPE = (BrickController.SENSOR_TYPE.NXT_ULTRASONIC,)
 class SoundSensor(BaseSensor):
-    SENSOR_TYPE = (BP.SENSOR_TYPE.CUSTOM, [(BP.SENSOR_CUSTOM.PIN1_ADC)])
+    SENSOR_TYPE = (BrickController.SENSOR_TYPE.CUSTOM, [(BrickController.SENSOR_CUSTOM.PIN1_ADC)])

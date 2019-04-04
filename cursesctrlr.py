@@ -37,21 +37,23 @@ class CursesController(object):
         self.dispatch_keyboard()
         self.draw_variables(self.reactor.variables)
     def dispatch_keyboard(self):
-        char = self.screen.getch()
-        if char != -1:
+        keycode = self.screen.getch()
+        if keycode != -1:
             try:
-                self.dispatch[char]()
+                func = self.dispatch[keycode]
             except KeyError:
-                self.unknown_key(char)
+                self.unknown_key(keycode)
+            else:
+                func()
     def draw_variables(self, variables):
         for index, (name, value) in enumerate(sorted(variables.items())):
             self.addstr(index+1, 0, '%s: %s' % (name, self.formatter(value)))
-    def unknown_key(self, char):
+    def unknown_key(self, keycode):
         try:
-            char = chr(char)
+            char = chr(keycode)
         except ValueError:
-            pass
-        self.reactor.log('unknown key: %r' % (char,))
+            char = '??'
+        self.reactor.log('unknown key: %r (%d)' % (char, keycode))
     def set_key(self, key, func):
         if isinstance(key, str):
             key = ord(key)

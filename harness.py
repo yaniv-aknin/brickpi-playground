@@ -15,7 +15,7 @@ def command(func):
     return func
 
 @command
-def curses():
+def console():
     r = reactor.Reactor()
     r.controllers['curses'] = cursesctrlr.CursesController(r)
     with r:
@@ -31,7 +31,7 @@ def robot():
     with r:
         r.curses.set_key('q', lambda: r.stop())
         r.brick.new_motor(r.brick.PORT_B, 'left')
-        r.brick.new_motor(r.brick.PORT_B, 'right')
+        r.brick.new_motor(r.brick.PORT_D, 'right')
         r.curses.set_key(curses.KEY_UP, lambda: r.brick.motors.all.set_power(50))
         r.curses.set_key(curses.KEY_DOWN, lambda: r.brick.motors.all.set_power(-50))
         r.curses.set_key(' ', lambda: r.brick.motors.all.float())

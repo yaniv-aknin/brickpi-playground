@@ -1,9 +1,10 @@
 import heapq
+import collections
 import time
 
 class Reactor(object):
     def __enter__(self):
-        self.handles = {}
+        self.handles = collections.OrderedDict()
         for name, controller in self.controllers.items():
             self.handles[name] = controller.__enter__()
         return self
@@ -15,7 +16,7 @@ class Reactor(object):
 
     def __init__(self, delay=0.1):
         self.delay = 0.1
-        self.controllers = {}
+        self.controllers = collections.OrderedDict()
         self.variables = {}
         self.loggers = []
         self.timers = []

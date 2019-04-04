@@ -4,6 +4,7 @@ import sys
 import reactor
 import cursesctrlr
 import time
+import twowheelctrlr
 try:
     import brickpictrlr
 except ImportError:
@@ -35,6 +36,16 @@ def robot():
         r.curses.set_key(curses.KEY_UP, lambda: r.brick.motors.all.set_power(50))
         r.curses.set_key(curses.KEY_DOWN, lambda: r.brick.motors.all.set_power(-50))
         r.curses.set_key(' ', lambda: r.brick.motors.all.float())
+        r.loop()
+
+@command
+def twowheel():
+    r = reactor.Reactor()
+    r.controllers['curses'] = cursesctrlr.CursesController(r)
+    brick = r.controllers['brick'] = brickpictrlr.BrickController(r)
+    r.controllers['twowheel'] = twowheelctrlr.TwoWheelController(r, right_port=brick.PORT_D, left_port=brick.PORT_B)
+    with r:
+        r.curses.set_key('q', lambda: r.stop())
         r.loop()
 
 if __name__ == '__main__':

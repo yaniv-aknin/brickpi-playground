@@ -17,6 +17,7 @@ class BrickController(object):
     PORT_D = brickpi3.BrickPi3.PORT_D
     SENSOR_TYPE = brickpi3.BrickPi3.SENSOR_TYPE
     SENSOR_CUSTOM = brickpi3.BrickPi3.SENSOR_CUSTOM
+    MOTOR_FLOAT = brickpi3.BrickPi3.MOTOR_FLOAT
     def __init__(self, reactor):
         self.reactor = reactor
         self.sensors = Bag()

@@ -3,7 +3,11 @@ import curses
 import sys
 import reactor
 import cursesctrlr
-import brickpictrlr
+import time
+try:
+    import brickpictrlr
+except ImportError:
+    print("no brickpi3")
 
 commands = {}
 def command(func):
@@ -16,6 +20,7 @@ def curses():
     r.controllers['curses'] = cursesctrlr.CursesController(r)
     with r:
         r.curses.set_key('q', lambda: r.stop())
+        r.schedule_recurring(5, lambda: r.log('%.3f' % time.time()))
         r.loop()
 
 @command

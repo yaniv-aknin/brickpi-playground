@@ -1,3 +1,4 @@
+import heapq
 import time
 
 class Reactor(object):
@@ -17,6 +18,7 @@ class Reactor(object):
         self.controllers = {}
         self.variables = {}
         self.loggers = []
+        self.timers = []
         self.handles = None
 
     def __getattr__(self, name):
@@ -32,6 +34,11 @@ class Reactor(object):
             for name, handle in self.handles.items():
                 handle()
             current = time.time()
+            while self.timers and heapq.nsmallest(1, self.timers)[0][0] < current:
+                when, interval, func = heapq.heappop(self.timers)
+                func()
+                if interval:
+                    self.schedule_recurring(interval, func)
             self.variables['delay'] = current - previous
             self.variables['timestamp'] = current
             previous = current
@@ -42,3 +49,11 @@ class Reactor(object):
 
     def stop(self):
         self.running = False
+
+    def schedule_once(self, duration, func):
+        when = time.time() + duration
+        heapq.heappush(self.timers, (when, 0, func))
+
+    def schedule_recurring(self, interval, func):
+        when = time.time() + interval
+        heapq.heappush(self.timers, (when, interval, func))

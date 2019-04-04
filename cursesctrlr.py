@@ -53,6 +53,6 @@ class CursesController(object):
             pass
         self.reactor.log('unknown key: %r' % (char,))
     def set_key(self, key, func):
-        if isinstance(key, basestring):
+        if isinstance(key, str):
             key = ord(key)
         self.dispatch[key] = func

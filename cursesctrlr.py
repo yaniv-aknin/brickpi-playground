@@ -26,21 +26,33 @@ class CursesController(object):
         curses.doupdate()
     def logger(self, text):
         return self.addstr(0, 0, text)
+    def formatter(self, obj):
+        if hasattr(obj, 'formatter'):
+            return obj.formatter()
+        elif isinstance(obj, float):
+            return '%.2f' % (obj,)
+        else:
+            return str(obj)
     def __call__(self):
+        self.dispatch_keyboard()
+        self.draw_variables(self.reactor.variables)
+    def dispatch_keyboard(self):
         char = self.screen.getch()
         if char != -1:
-            if char == ord('q'):
-                self.reactor.running = False
-                return
             try:
                 self.dispatch[char]()
             except KeyError:
                 self.unknown_key(char)
-        for index, (name, value) in enumerate(sorted(self.reactor.variables.items())):
-            FORMATS = {
-                float: '%.2f',
-            }
-            value = FORMATS.get(type(value), '%s') % (value,)
-            self.addstr(index+1, 0, '%s: %s' % (name, value))
+    def draw_variables(self, variables):
+        for index, (name, value) in enumerate(sorted(variables.items())):
+            self.addstr(index+1, 0, '%s: %s' % (name, self.formatter(value)))
     def unknown_key(self, char):
-        pass
+        try:
+            char = chr(char)
+        except ValueError:
+            pass
+        self.reactor.log('unknown key: %r' % (char,))
+    def set_key(self, key, func):
+        if isinstance(key, basestring):
+            key = ord(key)
+        self.dispatch[key] = func

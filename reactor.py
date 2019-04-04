@@ -39,3 +39,6 @@ class Reactor(object):
     def log(self, text):
         for logger in self.loggers:
             logger(text)
+
+    def stop(self):
+        self.running = False

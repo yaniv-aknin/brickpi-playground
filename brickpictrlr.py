@@ -36,6 +36,19 @@ class BrickController(object):
             self.motors['all'] = MotorSet(motor.brick, motor.port, 'all')
         else:
             self.motors.all.add_port(motor.port)
+    def new_sensor(self, kind, port, name=None, visible=False, callback=lambda v, r: None, interval=0.1):
+        name = name or kind.__name__
+        sensor = kind(self, port)
+        if visible:
+            def wrapper(sensor):
+                def callable():
+                    value = self.reactor.variables[name] = sensor()
+                    return value
+                return callable
+            sensor = wrapper(sensor)
+        self.sensors[name] = sensor
+        if interval:
+            self.reactor.schedule_recurring(interval, lambda: callback(sensor(), self.reactor))
     def __call__(self):
         pass
 
@@ -73,3 +86,5 @@ class DistanceSensor(BaseSensor):
     SENSOR_TYPE = (BrickController.SENSOR_TYPE.NXT_ULTRASONIC,)
 class SoundSensor(BaseSensor):
     SENSOR_TYPE = (BrickController.SENSOR_TYPE.CUSTOM, [(BrickController.SENSOR_CUSTOM.PIN1_ADC)])
+    def __call__(self):
+        return super(SoundSensor, self).__call__()[0]

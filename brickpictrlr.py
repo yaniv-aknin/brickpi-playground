@@ -63,9 +63,9 @@ class BaseSensor(object):
     def __init__(self, brick, port):
         self.brick = brick
         self.port = port
-        self.brick.set_sensor_type(port, *self.SENSOR_TYPE)
+        self.brick.device.set_sensor_type(port, *self.SENSOR_TYPE)
     def __call__(self):
-        return self.brick.get_sensor(self.port)
+        return self.brick.device.get_sensor(self.port)
 
 class TouchSensor(BaseSensor):
     SENSOR_TYPE = (BrickController.SENSOR_TYPE.TOUCH,)

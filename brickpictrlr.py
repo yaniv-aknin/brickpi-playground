@@ -33,9 +33,12 @@ class BrickController(object):
         motor = Motor(self, port, name)
         self.motors[motor.name] = motor
         if 'all' not in self.motors:
-            self.motors['all'] = MotorSet(motor.brick, motor.port, 'all')
+            self.motors['all'] = MotorSet('all', motor)
         else:
-            self.motors.all.add_port(motor.port)
+            self.motors.all.add_motor(motor)
+        return motor
+    def new_motor_set(self, name, first_motor, *remaining_motors):
+        return MotorSet(name, first_motor, *remaining_motors)
     def new_sensor(self, kind, port, name=None, visible=False, callback=lambda v, r: None, interval=0.1):
         name = name or kind.__name__
         sensor = kind(self, port)
@@ -49,6 +52,7 @@ class BrickController(object):
         self.sensors[name] = sensor
         if interval:
             self.reactor.schedule_recurring(interval, lambda: callback(sensor(), self.reactor))
+        return sensor
     def __call__(self):
         pass
 
@@ -69,8 +73,19 @@ class Motor(MotorBase):
     pass
 
 class MotorSet(MotorBase):
-    def add_port(self, port):
-        self.port += port
+    def __init__(self, name, first_motor, *remaining_motors):
+        self.name = name
+        self.motors = [first_motor]
+        self.brick = first_motor.brick
+        for motor in remaining_motors:
+            self.add_motor(motor)
+    def add_motor(self, motor):
+        if self.brick != motor.brick:
+            raise NotImplementedError("all motors must belong to the same brick")
+        self.motors.append(motor)
+    @property
+    def port(self):
+        return sum(motor.port for motor in self.motors)
 
 class BaseSensor(object):
     def __init__(self, brick, port):

@@ -14,8 +14,9 @@ class TwoWheelController(object):
         self.left_port = left_port
         self.right_port = right_port
     def __enter__(self):
-        self.reactor.brick.new_motor(self.left_port, 'left')
-        self.reactor.brick.new_motor(self.right_port, 'right')
+        self.left_motor = self.reactor.brick.new_motor(self.left_port, 'left')
+        self.right_motor = self.reactor.brick.new_motor(self.right_port, 'right')
+        self.both_motors = self.reactor.brick.new_motor_set('both', self.left_motor, self.right_motor)
         self.reactor.curses.set_key(curses.KEY_UP, self.forward)
         self.reactor.curses.set_key(curses.KEY_DOWN, self.reverse)
         self.reactor.curses.set_key(curses.KEY_LEFT, self.left)
@@ -32,13 +33,13 @@ class TwoWheelController(object):
         pass
     def __call__(self):
         if not self.driving:
-            self.reactor.brick.motors.all.float()
+            self.both_motors.float()
             return
         # add power opposite side of steering direction
         left_power = self.direction * (self.speed + (30 if self.steer == Steer.right else 0))
         right_power = self.direction * (self.speed + (30 if self.steer == Steer.left else 0))
-        self.reactor.brick.motors.right.set_power(right_power)
-        self.reactor.brick.motors.left.set_power(left_power)
+        self.left_motor.set_power(left_power)
+        self.right_motor.set_power(right_power)
     def forward(self):
         self.driving = True
         self.direction = 1

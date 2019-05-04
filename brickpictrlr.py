@@ -99,6 +99,7 @@ class TouchSensor(BaseSensor):
     SENSOR_TYPE = (BrickController.SENSOR_TYPE.TOUCH,)
 class DistanceSensor(BaseSensor):
     SENSOR_TYPE = (BrickController.SENSOR_TYPE.NXT_ULTRASONIC,)
+class CompassSensor(DistanceSensor): pass
 class SoundSensor(BaseSensor):
     SENSOR_TYPE = (BrickController.SENSOR_TYPE.CUSTOM, [(BrickController.SENSOR_CUSTOM.PIN1_ADC)])
     def __call__(self):

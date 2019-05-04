@@ -41,19 +41,20 @@ def robot():
 @command
 def twowheel():
     def slow_on_distance(distance, core):
-        if distance < 40:
-            core.twowheel.speed = min(core.twowheel.speed, 20)
-    def stop_on_sound(sound, core):
-        if sound < 1000:
-            core.twowheel.stop()
+        twowheel = core.controllers['twowheel']
+        if distance < 30:
+            twowheel.speed = min(twowheel.speed, 20)
     core = robocore.RoboCore()
     console = core.install('console', cursesctrlr.CursesController)
     brick = core.install('brick', brickpictrlr.BrickController)
     twowheel = core.install('twowheel', twowheelctrlr.TwoWheelController, right_port=brick.PORT_C, left_port=brick.PORT_D)
     with core:
         console.set_key('q', core.stop)
-    #    brick.new_sensor(brickpictrlr.DistanceSensor, brick.PORT_1, visible=True, callback=slow_on_distance)
-    #    brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_3, visible=True, callback=stop_on_sound)
+        brick.new_sensor(brickpictrlr.DistanceSensor, brick.PORT_3, visible=True, callback=slow_on_distance)
+        brick.new_sensor(brickpictrlr.CompassSensor, brick.PORT_4, visible=True)
+        brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_2, name='leftsound', visible=True)
+        brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_1, name='rightsound', visible=True)
+        time.sleep(0.2) # let distance sensors settle; http://tiny.cc/13z65y
         core.run()
 
 if __name__ == '__main__':

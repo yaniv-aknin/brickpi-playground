@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 import curses
 import sys
-import reactor
 import cursesctrlr
 import time
 import twowheelctrlr
+import robocore
 try:
     import brickpictrlr
 except ImportError:
@@ -17,16 +17,16 @@ def command(func):
 
 @command
 def console():
-    r = reactor.Reactor()
+    r = robocore.RoboCore()
     r.controllers['curses'] = cursesctrlr.CursesController(r)
     with r:
         r.curses.set_key('q', lambda: r.stop())
         r.schedule_recurring(5, lambda: r.log('%.3f' % time.time()))
-        r.loop()
+        r.run()
 
 @command
 def robot():
-    r = reactor.Reactor()
+    r = robocore.RoboCore()
     r.controllers['curses'] = cursesctrlr.CursesController(r)
     r.controllers['brick'] = brickpictrlr.BrickController(r)
     with r:
@@ -36,7 +36,7 @@ def robot():
         r.curses.set_key(curses.KEY_UP, lambda: r.brick.motors.all.set_power(50))
         r.curses.set_key(curses.KEY_DOWN, lambda: r.brick.motors.all.set_power(-50))
         r.curses.set_key(' ', lambda: r.brick.motors.all.float())
-        r.loop()
+        r.run()
 
 @command
 def twowheel():
@@ -46,7 +46,7 @@ def twowheel():
     def stop_on_sound(sound, reactor):
         if sound < 1000:
             reactor.twowheel.stop()
-    r = reactor.Reactor()
+    r = robocore.RoboCore()
     curses = r.controllers['curses'] = cursesctrlr.CursesController(r)
     brick = r.controllers['brick'] = brickpictrlr.BrickController(r)
     r.controllers['twowheel'] = twowheelctrlr.TwoWheelController(r, right_port=brick.PORT_C, left_port=brick.PORT_D)
@@ -54,7 +54,7 @@ def twowheel():
         curses.set_key('q', lambda: r.stop())
     #    brick.new_sensor(brickpictrlr.DistanceSensor, brick.PORT_1, visible=True, callback=slow_on_distance)
     #    brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_3, visible=True, callback=stop_on_sound)
-        r.loop()
+        r.run()
 
 if __name__ == '__main__':
     if len(sys.argv) < 2 or sys.argv[1] not in commands:

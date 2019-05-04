@@ -18,8 +18,8 @@ class BrickController(object):
     SENSOR_TYPE = brickpi3.BrickPi3.SENSOR_TYPE
     SENSOR_CUSTOM = brickpi3.BrickPi3.SENSOR_CUSTOM
     MOTOR_FLOAT = brickpi3.BrickPi3.MOTOR_FLOAT
-    def __init__(self, reactor):
-        self.reactor = reactor
+    def __init__(self, core):
+        self.core = core
         self.sensors = Bag()
         self.motors = Bag()
     def __enter__(self):
@@ -45,13 +45,13 @@ class BrickController(object):
         if visible:
             def wrapper(sensor):
                 def callable():
-                    value = self.reactor.variables[name] = sensor()
+                    value = self.core.variables[name] = sensor()
                     return value
                 return callable
             sensor = wrapper(sensor)
         self.sensors[name] = sensor
         if interval:
-            self.reactor.schedule_recurring(interval, lambda: callback(sensor(), self.reactor))
+            self.core.schedule_recurring(interval, lambda: callback(sensor(), self.core))
         return sensor
     def __call__(self):
         pass

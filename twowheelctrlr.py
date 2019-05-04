@@ -7,23 +7,25 @@ class Steer(enum.Enum):
     right = 3
 
 class TwoWheelController(object):
-    def __init__(self, reactor, left_port, right_port):
-        if {'curses', 'brick'} & set(reactor.controllers) != {'curses', 'brick'}:
-            raise RuntimeError('need curses and brick controllers')
-        self.reactor = reactor
+    def __init__(self, core, left_port, right_port):
+        if {'console', 'brick'} & set(core.controllers) != {'console', 'brick'}:
+            raise RuntimeError('need console and brick controllers')
+        self.core = core
         self.left_port = left_port
         self.right_port = right_port
     def __enter__(self):
-        self.left_motor = self.reactor.brick.new_motor(self.left_port, 'left')
-        self.right_motor = self.reactor.brick.new_motor(self.right_port, 'right')
-        self.both_motors = self.reactor.brick.new_motor_set('both', self.left_motor, self.right_motor)
-        self.reactor.curses.set_key(curses.KEY_UP, self.forward)
-        self.reactor.curses.set_key(curses.KEY_DOWN, self.reverse)
-        self.reactor.curses.set_key(curses.KEY_LEFT, self.left)
-        self.reactor.curses.set_key(curses.KEY_RIGHT, self.right)
-        self.reactor.curses.set_key(' ', self.stop)
-        self.reactor.curses.set_key('+', self.faster)
-        self.reactor.curses.set_key('-', self.slower)
+        brick = self.core.controllers['brick']
+        console = self.core.controllers['console']
+        self.left_motor = brick.new_motor(self.left_port, 'left')
+        self.right_motor = brick.new_motor(self.right_port, 'right')
+        self.both_motors = brick.new_motor_set('both', self.left_motor, self.right_motor)
+        console.set_key(curses.KEY_UP, self.forward)
+        console.set_key(curses.KEY_DOWN, self.reverse)
+        console.set_key(curses.KEY_LEFT, self.left)
+        console.set_key(curses.KEY_RIGHT, self.right)
+        console.set_key(' ', self.stop)
+        console.set_key('+', self.faster)
+        console.set_key('-', self.slower)
         self.driving = False
         self.direction = 1
         self.speed = 40
@@ -60,12 +62,12 @@ class TwoWheelController(object):
         self.speed = max(self.speed - 10, 10)
 
     def get_steer(self):
-        return self.reactor.variables['steer']
+        return self.core.variables['steer']
     def set_steer(self, steer):
-        self.reactor.variables['steer'] = steer
+        self.core.variables['steer'] = steer
     steer = property(get_steer, set_steer)
     def get_speed(self):
-        return self.reactor.variables['speed']
+        return self.core.variables['speed']
     def set_speed(self, speed):
-        self.reactor.variables['speed'] = speed
+        self.core.variables['speed'] = speed
     speed = property(get_speed, set_speed)

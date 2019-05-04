@@ -29,12 +29,10 @@ class RoboCore(object):
         for controller in self.controllers.values():
             controller()
         self.loop.call_later(self.frequency_seconds, self.control)
-    def install(self, name, controller_class):
-        controller = controller_class(self)
+    def install(self, name, controller_class, *args, **kwargs):
+        controller = controller_class(self, *args, **kwargs)
         self.controllers[name] = controller
         return controller
-    def __getattr__(self, name):
-        return self.contexts[name]
     def schedule_once(self, delay, func):
         return self.loop.call_later(delay, func)
     def schedule_recurring(self, interval, func):

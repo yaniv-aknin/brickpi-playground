@@ -17,44 +17,44 @@ def command(func):
 
 @command
 def console():
-    r = robocore.RoboCore()
-    r.controllers['curses'] = cursesctrlr.CursesController(r)
-    with r:
-        r.curses.set_key('q', lambda: r.stop())
-        r.schedule_recurring(5, lambda: r.log('%.3f' % time.time()))
-        r.run()
+    core = robocore.RoboCore()
+    console = core.install('console', cursesctrlr.CursesController)
+    with core:
+        curses.set_key('q', core.stop)
+        core.schedule_recurring(5, lambda: core.log('%.3f' % time.time()))
+        core.run()
 
 @command
 def robot():
-    r = robocore.RoboCore()
-    r.controllers['curses'] = cursesctrlr.CursesController(r)
-    r.controllers['brick'] = brickpictrlr.BrickController(r)
-    with r:
-        r.curses.set_key('q', lambda: r.stop())
-        r.brick.new_motor(r.brick.PORT_B, 'left')
-        r.brick.new_motor(r.brick.PORT_D, 'right')
-        r.curses.set_key(curses.KEY_UP, lambda: r.brick.motors.all.set_power(50))
-        r.curses.set_key(curses.KEY_DOWN, lambda: r.brick.motors.all.set_power(-50))
-        r.curses.set_key(' ', lambda: r.brick.motors.all.float())
-        r.run()
+    core = robocore.RoboCore()
+    console = core.install('console', cursesctrlr.CursesController)
+    brick = core.install('brick', brickpictrlr.BrickController)
+    with core:
+        console.set_key('q', core.stop)
+        brick.new_motor(brick.PORT_D, 'left')
+        brick.new_motor(brick.PORT_C, 'right')
+        console.set_key(curses.KEY_UP, lambda: brick.motors.all.set_power(50))
+        console.set_key(curses.KEY_DOWN, lambda: brick.motors.all.set_power(-50))
+        console.set_key(' ', brick.motors.all.float)
+        core.run()
 
 @command
 def twowheel():
-    def slow_on_distance(distance, reactor):
+    def slow_on_distance(distance, core):
         if distance < 40:
-            reactor.twowheel.speed = min(reactor.twowheel.speed, 20)
-    def stop_on_sound(sound, reactor):
+            core.twowheel.speed = min(core.twowheel.speed, 20)
+    def stop_on_sound(sound, core):
         if sound < 1000:
-            reactor.twowheel.stop()
-    r = robocore.RoboCore()
-    curses = r.controllers['curses'] = cursesctrlr.CursesController(r)
-    brick = r.controllers['brick'] = brickpictrlr.BrickController(r)
-    r.controllers['twowheel'] = twowheelctrlr.TwoWheelController(r, right_port=brick.PORT_C, left_port=brick.PORT_D)
-    with r:
-        curses.set_key('q', lambda: r.stop())
+            core.twowheel.stop()
+    core = robocore.RoboCore()
+    console = core.install('console', cursesctrlr.CursesController)
+    brick = core.install('brick', brickpictrlr.BrickController)
+    twowheel = core.install('twowheel', twowheelctrlr.TwoWheelController, right_port=brick.PORT_C, left_port=brick.PORT_D)
+    with core:
+        console.set_key('q', core.stop)
     #    brick.new_sensor(brickpictrlr.DistanceSensor, brick.PORT_1, visible=True, callback=slow_on_distance)
     #    brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_3, visible=True, callback=stop_on_sound)
-        r.run()
+        core.run()
 
 if __name__ == '__main__':
     if len(sys.argv) < 2 or sys.argv[1] not in commands:

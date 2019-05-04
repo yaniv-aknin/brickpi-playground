@@ -2,8 +2,8 @@ import curses
 import time
 
 class CursesController(object):
-    def __init__(self, reactor):
-        self.reactor = reactor
+    def __init__(self, core):
+        self.core = core
         self.dispatch = {}
     def __enter__(self):
         self.screen = curses.initscr() # get the curses screen window
@@ -12,7 +12,7 @@ class CursesController(object):
         self.screen.keypad(True) # map arrow keys to special values
         curses.curs_set(False)
         self.screen.nodelay(True)
-        self.reactor.loggers.append(self.logger)
+        self.core.loggers.append(self.logger)
         return self
     def __exit__(self, exc_type, exc_val, exc_tb):
         curses.nocbreak()
@@ -35,7 +35,7 @@ class CursesController(object):
             return str(obj)
     def __call__(self):
         self.dispatch_keyboard()
-        self.draw_variables(self.reactor.variables)
+        self.draw_variables(self.core.variables)
     def dispatch_keyboard(self):
         keycode = self.screen.getch()
         if keycode != -1:
@@ -53,7 +53,7 @@ class CursesController(object):
             char = chr(keycode)
         except ValueError:
             char = '??'
-        self.reactor.log('unknown key: %r (%d)' % (char, keycode))
+        self.core.log('unknown key: %r (%d)' % (char, keycode))
     def set_key(self, key, func):
         if isinstance(key, str):
             key = ord(key)

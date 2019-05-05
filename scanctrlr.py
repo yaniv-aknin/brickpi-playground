@@ -1,14 +1,14 @@
 import datetime
 import collections
 import brickpictrlr
+import robocore
 
 DataPoint = collections.namedtuple('DataPoint', 'timestamp compass left_sound right_sound')
 
-class ScanController(object):
+class ScanController(robocore.BaseController):
+    REQUIREMENTS = {'twowheel', 'console', 'brick'}
     def __init__(self, core, left_sound_port, right_sound_port, compass_port):
-        if {'twowheel', 'console', 'brick'} & set(core.controllers) != {'twowheel', 'brick', 'console'}:
-            raise RuntimeError('need twowheel, console and brick controllers')
-        self.core = core
+        super().__init__(core)
         self.left_sound_port = left_sound_port
         self.right_sound_port = right_sound_port
         self.compass_port = compass_port
@@ -21,12 +21,10 @@ class ScanController(object):
         console.set_key('s', self.do_scan)
         console.set_key('i', self.do_idle)
         console.set_key('d', self.dump_data)
-        self.left_sound = brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_2, name='leftsound', visible=True, interval=None)
-        self.right_sound = brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_1, name='rightsound', visible=True, interval=None)
-        self.compass = brick.new_sensor(brickpictrlr.CompassSensor, brick.PORT_4, visible=True, interval=None)
+        self.left_sound = brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_2, name='leftsound')
+        self.right_sound = brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_1, name='rightsound')
+        self.compass = brick.new_sensor(brickpictrlr.CompassSensor, brick.PORT_4)
         return self
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
     def __call__(self):
         self.strategy()
     def idle(self):

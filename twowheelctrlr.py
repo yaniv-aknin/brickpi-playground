@@ -1,16 +1,16 @@
 import curses
 import enum
+import robocore
 
 class Steer(enum.Enum):
     left = 1
     none = 2
     right = 3
 
-class TwoWheelController(object):
+class TwoWheelController(robocore.BaseController):
+    REQUIREMENTS = {'brick', 'console'}
     def __init__(self, core, left_port, right_port):
-        if {'console', 'brick'} & set(core.controllers) != {'console', 'brick'}:
-            raise RuntimeError('need console and brick controllers')
-        self.core = core
+        super().__init__(core)
         self.left_port = left_port
         self.right_port = right_port
     def __enter__(self):
@@ -31,8 +31,6 @@ class TwoWheelController(object):
         self.speed = 40
         self.steer = Steer.none
         return self
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
     def __call__(self):
         if not self.driving:
             self.both_motors.float()

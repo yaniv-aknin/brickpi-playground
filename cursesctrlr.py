@@ -1,9 +1,10 @@
 import curses
 import time
+import robocore
 
-class CursesController(object):
+class CursesController(robocore.BaseController):
     def __init__(self, core):
-        self.core = core
+        super().__init__(core)
         self.dispatch = {}
     def __enter__(self):
         self.screen = curses.initscr() # get the curses screen window

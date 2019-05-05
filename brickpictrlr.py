@@ -1,12 +1,14 @@
 import brickpi3
 import atexit
 import os
+import robocore
 
 class Bag(dict):
     def __getattr__(self, name):
         return self[name]
 
-class BrickController(object):
+class BrickController(robocore.BaseController):
+    FREQUENCY_SECONDS = None
     PORT_1 = brickpi3.BrickPi3.PORT_1
     PORT_2 = brickpi3.BrickPi3.PORT_2
     PORT_3 = brickpi3.BrickPi3.PORT_3
@@ -19,7 +21,7 @@ class BrickController(object):
     SENSOR_CUSTOM = brickpi3.BrickPi3.SENSOR_CUSTOM
     MOTOR_FLOAT = brickpi3.BrickPi3.MOTOR_FLOAT
     def __init__(self, core):
-        self.core = core
+        super().__init__(core)
         self.sensors = Bag()
         self.motors = Bag()
     def __enter__(self):
@@ -39,7 +41,7 @@ class BrickController(object):
         return motor
     def new_motor_set(self, name, first_motor, *remaining_motors):
         return MotorSet(name, first_motor, *remaining_motors)
-    def new_sensor(self, kind, port, name=None, visible=False, callback=lambda v, r: None, interval=0.1):
+    def new_sensor(self, kind, port, name=None, visible=True):
         name = name or kind.__name__
         sensor = kind(self, port)
         if visible:
@@ -50,11 +52,7 @@ class BrickController(object):
                 return callable
             sensor = wrapper(sensor)
         self.sensors[name] = sensor
-        if interval:
-            self.core.schedule_recurring(interval, lambda: callback(sensor(), self.core))
         return sensor
-    def __call__(self):
-        pass
 
 class MotorBase(object):
     def __init__(self, brick, port, name):

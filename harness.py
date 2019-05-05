@@ -21,8 +21,8 @@ def console():
     core = robocore.RoboCore()
     console = core.install('console', cursesctrlr.CursesController)
     with core:
-        curses.set_key('q', core.stop)
-        core.schedule_recurring(5, lambda: core.log('%.3f' % time.time()))
+        console.set_key('q', core.stop)
+        core.recurring(5, lambda: core.log('%.3f' % time.time()))
         core.run()
 
 @command

@@ -7,6 +7,7 @@ import twowheelctrlr
 import robocore
 try:
     import brickpictrlr
+    import scanctrlr
 except ImportError:
     print("no brickpi3")
 
@@ -25,35 +26,24 @@ def console():
         core.run()
 
 @command
-def robot():
-    core = robocore.RoboCore()
-    console = core.install('console', cursesctrlr.CursesController)
-    brick = core.install('brick', brickpictrlr.BrickController)
-    with core:
-        console.set_key('q', core.stop)
-        brick.new_motor(brick.PORT_D, 'left')
-        brick.new_motor(brick.PORT_C, 'right')
-        console.set_key(curses.KEY_UP, lambda: brick.motors.all.set_power(50))
-        console.set_key(curses.KEY_DOWN, lambda: brick.motors.all.set_power(-50))
-        console.set_key(' ', brick.motors.all.float)
-        core.run()
-
-@command
 def twowheel():
-    def slow_on_distance(distance, core):
-        twowheel = core.controllers['twowheel']
-        if distance < 30:
-            twowheel.speed = min(twowheel.speed, 20)
     core = robocore.RoboCore()
     console = core.install('console', cursesctrlr.CursesController)
     brick = core.install('brick', brickpictrlr.BrickController)
     twowheel = core.install('twowheel', twowheelctrlr.TwoWheelController, right_port=brick.PORT_C, left_port=brick.PORT_D)
     with core:
         console.set_key('q', core.stop)
-        brick.new_sensor(brickpictrlr.DistanceSensor, brick.PORT_3, visible=True, callback=slow_on_distance)
-        brick.new_sensor(brickpictrlr.CompassSensor, brick.PORT_4, visible=True)
-        brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_2, name='leftsound', visible=True)
-        brick.new_sensor(brickpictrlr.SoundSensor, brick.PORT_1, name='rightsound', visible=True)
+        core.run()
+
+@command
+def scanner():
+    core = robocore.RoboCore()
+    console = core.install('console', cursesctrlr.CursesController)
+    brick = core.install('brick', brickpictrlr.BrickController)
+    twowheel = core.install('twowheel', twowheelctrlr.TwoWheelController, right_port=brick.PORT_C, left_port=brick.PORT_D)
+    scanner = core.install('scanner', scanctrlr.ScanController, left_sound_port=brick.PORT_2, right_sound_port=brick.PORT_1, compass_port=brick.PORT_4)
+    with core:
+        console.set_key('q', core.stop)
         time.sleep(0.2) # let distance sensors settle; http://tiny.cc/13z65y
         core.run()
 

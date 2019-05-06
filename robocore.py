@@ -1,3 +1,5 @@
+import sys
+import traceback
 import collections
 import asyncio
 
@@ -23,6 +25,7 @@ class RoboCore(object):
         self.variables = {}
         self.loggers = []
         self.contexts = None
+        self.exc_info = (None, None, None)
     def __enter__(self):
         self.contexts = collections.OrderedDict()
         for name, controller in self.controllers.items():
@@ -30,8 +33,13 @@ class RoboCore(object):
         return self
     def __exit__(self, exc_type, exc_val, exc_tb):
         for name, handle in self.contexts.items():
-            handle.__exit__(exc_type, exc_val, exc_tb)
+            handle.__exit__(*self.exc_info)
+        if self.exc_info != (None, None, None):
+            traceback.print_exception(*self.exc_info)
+            self.exc_info = (None, None, None)
         self.contexts = None
+        if exc_type is KeyboardInterrupt:
+            return True
     def log(self, text):
         for logger in self.loggers:
             logger(text)
@@ -48,8 +56,12 @@ class RoboCore(object):
         return controller
     def recurring(self, interval, func, *args, **kwargs):
         def scheduled():
-            func(*args, **kwargs)
-            self.loop.call_later(interval, scheduled)
+            try:
+                func(*args, **kwargs)
+                self.loop.call_later(interval, scheduled)
+            except Exception:
+                self.exc_info = sys.exc_info()
+                self.loop.stop()
         self.loop.call_soon(scheduled)
     def stop(self):
         self.loop.stop()

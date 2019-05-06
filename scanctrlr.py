@@ -31,6 +31,7 @@ class ScanController(robocore.BaseController):
         pass
     def scan(self):
         if not self.twowheel.driving:
+            self.twowheel.speed = 10
             self.twowheel.forward()
             self.twowheel.left()
         point = DataPoint(

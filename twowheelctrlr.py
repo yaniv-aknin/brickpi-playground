@@ -9,6 +9,8 @@ class Steer(enum.Enum):
 
 class TwoWheelController(robocore.BaseController):
     REQUIREMENTS = {'brick', 'console'}
+    MIN_SPEED = 0
+    MAX_SPEED = 70
     def __init__(self, core, left_port, right_port):
         super().__init__(core)
         self.left_port = left_port
@@ -55,9 +57,9 @@ class TwoWheelController(robocore.BaseController):
     def stop(self):
         self.driving = False
     def faster(self):
-        self.speed = min(self.speed + 10, 70)
+        self.speed = min(self.speed + 10, self.MAX_SPEED)
     def slower(self):
-        self.speed = max(self.speed - 10, 10)
+        self.speed = max(self.speed - 10, self.MIN_SPEED)
 
     def get_steer(self):
         return self.core.variables['steer']
